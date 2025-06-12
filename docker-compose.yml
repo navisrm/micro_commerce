@@ -30,7 +30,9 @@ services:
       - redis_data:/data
 
   user-service:
-    build: ./user-service
+    build: 
+      context: .
+      dockerfile: user-service/Dockerfile
     ports:
       - "8000:8000"
     depends_on:
@@ -39,7 +41,9 @@ services:
       DATABASE_URL: postgresql://admin:admin123@postgres:5432/microcommerce
 
   product-service:
-    build: ./product-service
+    build:
+      context: .
+      dockerfile: product-service/Dockerfile
     ports:
       - "8001:8001"
     depends_on:
@@ -48,7 +52,9 @@ services:
       MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
 
   order-service:
-    build: ./order-service
+    build:
+      context: .
+      dockerfile: order-service/Dockerfile
     ports:
       - "8002:8002"
     depends_on:
@@ -59,7 +65,9 @@ services:
       REDIS_URL: redis://redis:6379
 
   api-gateway:
-    build: ./api-gateway
+    build:
+      context: .
+      dockerfile: api-gateway/Dockerfile
     ports:
       - "8003:8003"
     depends_on:
@@ -72,7 +80,9 @@ services:
       ORDER_SERVICE_URL: http://order-service:8002
 
   notification-service:
-    build: ./notification-service
+    build:
+      context: .
+      dockerfile: notification-service/Dockerfile
     ports:
       - "8004:8004"
     depends_on:
