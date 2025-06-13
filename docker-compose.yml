@@ -37,8 +37,10 @@ services:
       - "8000:8000"
     depends_on:
       - postgres
+      - notification-service
     environment:
       DATABASE_URL: postgresql://admin:admin123@postgres:5432/microcommerce
+      NOTIFICATION_SERVICE_URL: http://notification-service:8004
 
   product-service:
     build:

@@ -1,4 +1,4 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from typing import Dict
 import httpx
 import os
@@ -14,29 +14,45 @@ ORDER_SERVICE_URL = os.getenv("ORDER_SERVICE_URL", "http://order-service:8002")
 async def health_check() -> Dict[str, str]:
     return {"status": "healthy", "service": "api-gateway"}
 
-@app.get("/users/{path:path}")
-async def user_service_proxy(path: str):
+@app.api_route("/users/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def user_service_proxy(path: str, request: Request):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(f"{USER_SERVICE_URL}/{path}")
+            # Forward the request with the same method and body
+            response = await client.request(
+                method=request.method,
+                url=f"{USER_SERVICE_URL}/{path}",
+                headers={key: value for key, value in request.headers.items() if key.lower() != "host"},
+                content=await request.body() if request.method in ["POST", "PUT", "PATCH"] else None
+            )
             return response.json()
         except httpx.RequestError as exc:
             raise HTTPException(status_code=503, detail=f"User service unavailable: {str(exc)}")
 
-@app.get("/products/{path:path}")
-async def product_service_proxy(path: str):
+@app.api_route("/products/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def product_service_proxy(path: str, request: Request):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(f"{PRODUCT_SERVICE_URL}/{path}")
+            response = await client.request(
+                method=request.method,
+                url=f"{PRODUCT_SERVICE_URL}/{path}",
+                headers={key: value for key, value in request.headers.items() if key.lower() != "host"},
+                content=await request.body() if request.method in ["POST", "PUT", "PATCH"] else None
+            )
             return response.json()
         except httpx.RequestError as exc:
             raise HTTPException(status_code=503, detail=f"Product service unavailable: {str(exc)}")
 
-@app.get("/orders/{path:path}")
-async def order_service_proxy(path: str):
+@app.api_route("/orders/{path:path}", methods=["GET", "POST", "PUT", "DELETE"])
+async def order_service_proxy(path: str, request: Request):
     async with httpx.AsyncClient() as client:
         try:
-            response = await client.get(f"{ORDER_SERVICE_URL}/{path}")
+            response = await client.request(
+                method=request.method,
+                url=f"{ORDER_SERVICE_URL}/{path}",
+                headers={key: value for key, value in request.headers.items() if key.lower() != "host"},
+                content=await request.body() if request.method in ["POST", "PUT", "PATCH"] else None
+            )
             return response.json()
         except httpx.RequestError as exc:
             raise HTTPException(status_code=503, detail=f"Order service unavailable: {str(exc)}")
